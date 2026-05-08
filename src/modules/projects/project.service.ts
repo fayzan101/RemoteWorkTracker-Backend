@@ -1,7 +1,7 @@
 import { getDb } from '../../config/db';
 import pool from '../../config/db';
 import logger from '../../config/logger';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { publishProjectEvent } from '../../utils/rabbitmq';
 
 const db = getDb();
@@ -36,7 +36,7 @@ export async function createProjectService(data: CreateProjectInput) {
   if (isNaN(start.getTime()) || isNaN(end.getTime())) throw new Error('Invalid start_date or end_date.');
   if (end < start) throw new Error('end_date must be on or after start_date.');
 
-  const project_id = uuidv4();
+  const project_id = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert('projects', {
     project_id,
@@ -184,7 +184,7 @@ export async function addProjectMemberService(projectId: string, userId: string,
   );
   if (existing.rowCount && existing.rowCount > 0) throw new Error('User is already a member of this project.');
 
-  const member_id = uuidv4();
+  const member_id = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert('project_members', {
     member_id,

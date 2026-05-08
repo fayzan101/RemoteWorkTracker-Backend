@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import logger from '../../config/logger';
 import { syncTaskData } from './ai.service';
 
@@ -35,7 +35,7 @@ export function buildTaskSyncSnapshot(input: {
 
 export async function syncTaskLifecycleToAi(snapshot: TaskSyncSnapshot): Promise<void> {
 	try {
-		await syncTaskData({ ...snapshot, requestId: uuidv4() });
+		await syncTaskData({ ...snapshot, requestId: crypto.randomUUID() });
 	} catch (err) {
 		logger.warn('AI task lifecycle auto-sync skipped/failed', {
 			tenantId: snapshot.tenantId,

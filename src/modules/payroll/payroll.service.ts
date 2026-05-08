@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import pool from '../../config/db';
 import logger from '../../config/logger';
 
@@ -74,7 +74,7 @@ export const generatePayrollService = async (month: string) => {
 
   for (const user of users) {
     const salary = Number(user.salary ?? 0);
-    const payrollId = uuidv4();
+    const payrollId = crypto.randomUUID();
 
     await pool.query(
       `INSERT INTO payroll (payroll_id, user_id, period_start, period_end, amount, created_at, updated_at)
@@ -84,7 +84,7 @@ export const generatePayrollService = async (month: string) => {
     );
 
     // Insert a breakdown entry for basicSalary
-    const entryId = uuidv4();
+    const entryId = crypto.randomUUID();
     await pool.query(
       `INSERT INTO payroll_entries (entry_id, payroll_id, description, amount, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6)`,

@@ -1,5 +1,4 @@
 import { createUserRefreshToken, findUserRefreshToken, deleteUserRefreshToken, findUserByEmail, findUserById, findManagers, updateUserPassword, updateUserProfile } from './user.repo';
-import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ENV } from '../../config/env';

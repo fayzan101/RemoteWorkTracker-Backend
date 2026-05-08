@@ -9,6 +9,7 @@ export const getAllUsersService = async () => {
 import { hashPassword } from '../../utils/password';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { registerUserRepo } from './organization.repo';
+import crypto from 'crypto';
 export const registerUserService = async (data: any) => {
   const { name, email, password, roleId, departmentId, organizationId, region, salary } = data;
   const db = getDb();
@@ -17,7 +18,7 @@ export const registerUserService = async (data: any) => {
     throw new Error('Department not found. Please provide a valid departmentId.');
   }
   const hashedPassword = await hashPassword(password);
-  const userId = uuidv4();
+  const userId = crypto.randomUUID();
   await registerUserRepo({
     user_id: userId,
     name,
@@ -106,7 +107,6 @@ export const organizationLogoutService = async (refreshToken: string) => {
 import bcrypt from 'bcryptjs';
 import pool, { getDb } from '../../config/db';
 import logger from '../../config/logger';
-import { v4 as uuidv4 } from 'uuid';
 
 export const getOrganizationByIdService = async (id: string) => {
   const db = getDb();
@@ -121,7 +121,7 @@ export const createOrganizationService = async (data: { name: string, address?: 
     logger.warn('Invalid organization name length', { name: data.name });
     throw new Error('Organization name must be between 2 and 100 characters.');
   }
-  const organizationId = uuidv4();
+  const organizationId = crypto.randomUUID();
   const now = new Date().toISOString();
   const passwordHash = await bcrypt.hash(data.adminPassword, 10);
   await db.insert('organizations', {

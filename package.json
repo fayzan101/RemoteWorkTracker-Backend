@@ -6,6 +6,7 @@
     "scripts": {
         "start": "ts-node src/server.ts",
         "dev": "nodemon src/server.ts",
+        "openapi:generate": "ts-node scripts/generate-openapi.ts",
         "worker:ai": "ts-node src/ai.worker.ts",
         "worker:ai:dev": "nodemon src/ai.worker.ts",
         "test": "jest",
@@ -35,7 +36,6 @@
         "redis": "^5.11.0",
         "resend": "^6.9.3",
         "socket.io": "^4.8.3",
-        "uuid": "^13.0.0",
         "winston": "^3.19.0",
         "zod": "^4.3.6"
     },
@@ -48,7 +48,6 @@
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^25.3.5",
         "@types/supertest": "^6.0.2",
-        "@types/uuid": "^10.0.0",
         "@types/winston": "^2.4.4",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",

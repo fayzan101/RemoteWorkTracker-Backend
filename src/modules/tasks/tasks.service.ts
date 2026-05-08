@@ -1,6 +1,6 @@
 
 import logger from '../../config/logger';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import * as taskRepo from './tasks.repository';
 import { buildTaskSyncSnapshot, syncTaskLifecycleToAi } from '../ai/ai.autosync';
 import { isAiIntegrationConfigured } from '../ai/ai.service';
@@ -32,7 +32,7 @@ export async function createTaskService(data: CreateTaskInput) {
   const assignee = await taskRepo.findUserById(data.assigned_to);
   if (!assignee) throw new Error('Assignee (user) not found.');
 
-  const task_id = uuidv4();
+  const task_id = crypto.randomUUID();
   const now = new Date().toISOString();
   await taskRepo.insertTask({
     task_id,
@@ -158,7 +158,7 @@ export async function addTaskCommentService(taskId: string, userId: string, comm
   const user = await taskRepo.findUserById(userId);
   if (!user) throw new Error('User not found.');
 
-  const comment_id = uuidv4();
+  const comment_id = crypto.randomUUID();
   const now = new Date().toISOString();
   await taskRepo.insertTaskComment({
     comment_id,
@@ -194,7 +194,7 @@ export async function addTaskAttachmentService(taskId: string, file_path: string
   if (!task) throw new Error('Task not found.');
   if (!file_path || file_path.length > 255) throw new Error('file_path is required (max 255 characters).');
 
-  const attachment_id = uuidv4();
+  const attachment_id = crypto.randomUUID();
   const now = new Date().toISOString();
   await taskRepo.insertTaskAttachment({
     attachment_id,

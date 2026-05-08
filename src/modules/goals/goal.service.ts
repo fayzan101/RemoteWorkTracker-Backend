@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { getDb } from '../../config/db';
 import pool from '../../config/db';
 import logger from '../../config/logger';
@@ -37,7 +37,7 @@ export async function createGoalService(input: CreateGoalInput) {
   const user = await db.findOne('users', { user_id: input.userId });
   if (!user) throw new Error('User not found.');
 
-  const goalId = uuidv4();
+  const goalId = crypto.randomUUID();
   const now = new Date().toISOString();
 
   await db.insert('goals', {

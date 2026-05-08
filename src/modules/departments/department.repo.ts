@@ -1,5 +1,5 @@
 import pool, { getDb } from '../../config/db';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 export const findDepartmentById = async (departmentId: string) => {
   const id = Array.isArray(departmentId) ? departmentId[0] : departmentId;
   const query = 'SELECT department_id, name, organization_id, created_at, updated_at FROM departments WHERE department_id = $1';
@@ -32,7 +32,7 @@ export const updateDepartmentById = async (departmentId: string, data: { name?: 
 export const insertDepartment = async (data: { name: string, organizationId: string }) => {
   const db = getDb();
   
-  const departmentId = uuidv4();
+  const departmentId = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert('departments', {
     department_id: departmentId,

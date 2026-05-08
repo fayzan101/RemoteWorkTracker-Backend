@@ -6,14 +6,14 @@ export const getAllRolesService = async () => {
 import { getDb } from '../../config/db';
 import pool from '../../config/db';
 import logger from '../../config/logger';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 export const createRoleService = async (data: { name: string, description?: string }) => {
   const db = getDb();
   if (!data.name || data.name.length < 3 || data.name.length > 100) {
     logger.warn('Invalid role creation input', { name: data.name });
     throw new Error('name (3-100 chars) is required.');
   }
-  const roleId = uuidv4();
+  const roleId = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert('roles', {
     role_id: roleId,

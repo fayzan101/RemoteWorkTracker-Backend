@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { validate as validateUUID } from 'uuid';
 import crypto from 'crypto';
 import {
   saveDevice,
@@ -20,6 +19,13 @@ import {
   createPairingCodeSchema,
 } from './agent.validation';
 import { AuthRequest } from '../../middleware/auth.middleware';
+
+function isUuid(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value.trim()
+  );
+}
 
 function generatePairingCode(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -84,7 +90,7 @@ export const createPairingCode = async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ error: parseResult.error.flatten() });
   }
   const userId = req.user?.userId;
-  if (!userId || !validateUUID(userId)) {
+  if (!userId || !isUuid(userId)) {
     return res.status(401).json({ error: 'Authenticated user is required to generate a pairing code' });
   }
   const expiresInMinutes = parseResult.data.expiresInMinutes ?? 10;

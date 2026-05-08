@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import helmet from "helmet";
 import cors from "cors";
 import rolesRouter from "./modules/roles/role.routes";
@@ -27,9 +28,15 @@ if (ENV.TRUST_PROXY) {
   app.set("trust proxy", 1);
 }
 
-app.use(helmet());
+// Swagger UI loads assets + inline JS from CDN; Helmet CSP blocks it by default.
+// If you want stricter CSP later, we can add a per-route CSP just for /api and allowlist Swagger CDNs for /docs.
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors(getCorsOptions()));
 app.use(express.json({ limit: '1mb' }));
+
+// Swagger UI + OpenAPI spec (static files)
+app.use("/docs", express.static(path.resolve(__dirname, "../public/swagger")));
+
 app.use("/api", apiRateLimiter);
 
 app.use("/api/v1/roles", rolesRouter);

@@ -1,7 +1,7 @@
 import { getDb } from '../../config/db';
 import pool from '../../config/db';
 import logger from '../../config/logger';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { findDepartmentById, updateDepartmentById } from './department.repo';
 
 export const getDepartmentByIdService = async (departmentId: string) => {
@@ -54,7 +54,7 @@ export const createDepartmentService = async (data: { name: string, organization
     logger.warn('Organization not found', { organizationId: data.organizationId });
     throw new Error('Organization not found. Please provide a valid organizationId.');
   }
-  const departmentId = uuidv4();
+  const departmentId = crypto.randomUUID();
   const now = new Date().toISOString();
   await db.insert('departments', {
     department_id: departmentId,

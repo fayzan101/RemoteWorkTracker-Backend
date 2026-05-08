@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { inspectDlqMessages, replayDlqMessages } from './ai.consumer';
 import { publishAiEvent } from '../../utils/rabbitmq';
@@ -31,7 +31,7 @@ function resolveTenantId(req: AuthRequest): string | null {
 
 function getRequestId(req: Request): string {
 	const headerId = req.header('x-request-id');
-	return headerId && headerId.trim() ? headerId.trim() : uuidv4();
+	return headerId && headerId.trim() ? headerId.trim() : crypto.randomUUID();
 }
 
 function handleAiError(res: Response, err: unknown) {

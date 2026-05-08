@@ -1,7 +1,22 @@
 import { Pool } from 'pg';
 import { ENV } from './env';
+const shouldUseSsl =
+	process.env.DB_SSL === '1' ||
+	process.env.DB_SSL === 'true' ||
+	(process.env.PGSSLMODE || '').toLowerCase() === 'require' ||
+	(ENV.DATABASE_URL ? new URL(ENV.DATABASE_URL).searchParams.get('sslmode') === 'require' : false);
+
+const connectionString = ENV.DATABASE_URL
+	? (() => {
+			const u = new URL(ENV.DATABASE_URL);
+			u.searchParams.delete('sslmode');
+			return u.toString();
+		})()
+	: ENV.DATABASE_URL;
+
 const pool = new Pool({
-	connectionString: ENV.DATABASE_URL,
+	connectionString,
+	ssl: shouldUseSsl ? { rejectUnauthorized: false } : undefined,
 });
 export const getDb = () => {
 	return {

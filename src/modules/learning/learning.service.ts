@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { getDb } from '../../config/db';
 import pool from '../../config/db';
 import logger from '../../config/logger';
@@ -51,7 +51,7 @@ export async function createCourseService(input: CreateCourseInput) {
   const instructor = await db.findOne('users', { user_id: input.instructorId });
   if (!instructor) throw new Error('Instructor not found.');
 
-  const courseId = uuidv4();
+  const courseId = crypto.randomUUID();
   const now = new Date().toISOString();
 
   await db.insert('courses', {
@@ -158,7 +158,7 @@ export async function enrollUserInCourseService(courseId: string, input: EnrollC
     throw new Error('User is already enrolled in this course.');
   }
 
-  const enrollmentId = uuidv4();
+  const enrollmentId = crypto.randomUUID();
   const now = new Date().toISOString();
 
   await db.insert('course_enrollments', {

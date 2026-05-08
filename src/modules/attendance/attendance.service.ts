@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import logger from '../../config/logger';
 import { isAiIntegrationConfigured, syncEmployeeData } from '../ai/ai.service';
 import {
@@ -37,7 +37,7 @@ export async function patchAttendanceById(attendanceId: string, data: Record<str
     if (snapshot) {
       await syncEmployeeData({
         ...snapshot,
-        requestId: uuidv4(),
+        requestId: crypto.randomUUID(),
       });
     }
   } catch (err) {
