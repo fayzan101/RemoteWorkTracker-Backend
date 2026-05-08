@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 import path from "path";
 import helmet from "helmet";
 import cors from "cors";
@@ -34,8 +35,25 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors(getCorsOptions()));
 app.use(express.json({ limit: '1mb' }));
 
-// Swagger UI + OpenAPI spec (static files)
-app.use("/docs", express.static(path.resolve(__dirname, "../public/swagger")));
+// Swagger UI + OpenAPI spec (static files).
+// In a serverless deployment the working directory layout differs from local
+// dev, so probe a few candidate locations and only mount /docs if we find
+// the swagger folder. This avoids 500s when the asset isn't bundled.
+const swaggerCandidates = [
+  path.resolve(__dirname, "../public/swagger"),
+  path.resolve(process.cwd(), "public/swagger"),
+  path.resolve(__dirname, "../../public/swagger"),
+];
+const swaggerDir = swaggerCandidates.find((p) => {
+  try {
+    return fs.existsSync(p);
+  } catch {
+    return false;
+  }
+});
+if (swaggerDir) {
+  app.use("/docs", express.static(swaggerDir));
+}
 
 app.use("/api", apiRateLimiter);
 
@@ -55,6 +73,17 @@ app.use("/api/v1/attendance", attendanceRouter);
 app.use("/api/v1/ai", aiRouter);
 app.get("/", (req, res) => {
   res.send("API is running");
+});
+
+// Lightweight health-check that does NOT touch the database. Useful for
+// confirming the Vercel function itself is alive (i.e. the runtime
+// successfully imported the app without crashing).
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    env: ENV.NODE_ENV,
+    uptime: process.uptime(),
+  });
 });
 
 app.use(notFoundHandler);
