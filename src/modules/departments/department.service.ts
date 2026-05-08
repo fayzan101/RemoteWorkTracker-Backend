@@ -1,0 +1,112 @@
+import { getDb } from '../../config/db';
+import pool from '../../config/db';
+import logger from '../../config/logger';
+import { v4 as uuidv4 } from 'uuid';
+import { findDepartmentById, updateDepartmentById } from './department.repo';
+
+export const getDepartmentByIdService = async (departmentId: string) => {
+  const row = await findDepartmentById(departmentId);
+  if (!row) throw new Error('Department not found');
+  return {
+    departmentId: row.department_id,
+    name: row.name,
+    organizationId: row.organization_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
+
+export const updateDepartmentService = async (departmentId: string, data: { name?: string; organizationId?: string }) => {
+  const row = await updateDepartmentById(departmentId, data);
+  if (!row) throw new Error('Department not found');
+  return {
+    departmentId: row.department_id,
+    name: row.name,
+    organizationId: row.organization_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
+
+export const reassignUsersDepartmentService = async (fromDepartmentId: string, toDepartmentId: string) => {
+  
+  const fromCheck = await pool.query('SELECT 1 FROM departments WHERE department_id = $1', [fromDepartmentId]);
+  if (fromCheck.rowCount === 0) {
+    throw new Error('Source department not found');
+  }
+  const toCheck = await pool.query('SELECT 1 FROM departments WHERE department_id = $1', [toDepartmentId]);
+  if (toCheck.rowCount === 0) {
+    throw new Error('Target department not found');
+  }
+  
+  await pool.query('UPDATE users SET department_id = $1 WHERE department_id = $2', [toDepartmentId, fromDepartmentId]);
+  return { message: 'All users reassigned successfully' };
+};
+
+export const createDepartmentService = async (data: { name: string, organizationId: string }) => {
+  const db = getDb();
+  if (!data.name || data.name.length < 2 || data.name.length > 100) {
+    logger.warn('Invalid department name length', { name: data.name });
+    throw new Error('Department name must be between 2 and 100 characters.');
+  }
+  const organization = await db.findOne('organizations', { organization_id: data.organizationId });
+  if (!organization) {
+    logger.warn('Organization not found', { organizationId: data.organizationId });
+    throw new Error('Organization not found. Please provide a valid organizationId.');
+  }
+  const departmentId = uuidv4();
+  const now = new Date().toISOString();
+  await db.insert('departments', {
+    department_id: departmentId,
+    name: data.name,
+    organization_id: data.organizationId,
+    created_at: now,
+    updated_at: now
+  });
+  logger.info('Department created', { departmentId, name: data.name });
+  return {
+    departmentId,
+    name: data.name,
+    createdAt: now
+  };
+};
+
+export const getAllDepartmentsService = async ({ page = 1, limit = 20 }) => {
+  const db = getDb();
+  const offset = (page - 1) * limit;
+  const totalResult = await db.selectAll('departments');
+  const totalRecords = totalResult.length;
+  const totalPages = Math.ceil(totalRecords / limit);
+  const query = `SELECT department_id, name, created_at FROM departments ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+  const result = await pool.query(query, [limit, offset]);
+  return {
+    meta: {
+      page,
+      limit,
+      totalRecords,
+      totalPages
+    },
+    data: result.rows.map((row: any) => ({
+      departmentId: row.department_id,
+      name: row.name,
+      createdAt: row.created_at
+    }))
+  };
+};
+
+export const deleteDepartmentService = async (departmentId: string) => {
+  
+  const id = Array.isArray(departmentId) ? departmentId[0] : departmentId;
+  
+  const { rowCount } = await pool.query('SELECT 1 FROM departments WHERE department_id = $1', [id]);
+  if (rowCount === 0) {
+    throw new Error('Department not found');
+  }
+  
+  const userCheck = await pool.query('SELECT COUNT(*) FROM users WHERE department_id = $1', [id]);
+  if (parseInt(userCheck.rows[0].count, 10) > 0) {
+    throw new Error('Cannot delete department: users are still assigned to this department. Please reassign or remove users first.');
+  }
+  await pool.query('DELETE FROM departments WHERE department_id = $1', [id]);
+  return { message: 'Department deleted successfully' };
+};

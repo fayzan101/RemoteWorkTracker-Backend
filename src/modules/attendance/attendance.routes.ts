@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { getAttendanceController, getAttendanceByIdController, getMyAttendanceController, deleteAttendanceByIdController, patchAttendanceByIdController } from './attendance.controller';
+import { authenticateJWT } from '../../middleware/auth.middleware';
+const router = Router();
+router.get('/', getAttendanceController);
+router.get('/me', authenticateJWT, getMyAttendanceController);
+router.get('/:id', getAttendanceByIdController);
+router.delete('/:id', deleteAttendanceByIdController);
+router.patch('/:id', patchAttendanceByIdController);
+export default router;
